@@ -9,11 +9,9 @@ __maintainer__ = "Richard Clubb"
 __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
+import json
 
-from uds.uds_config_tool import DecodeFunctions
-import sys
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
-
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 SUPPRESS_RESPONSE_BIT = 0x80
 
@@ -74,19 +72,27 @@ class ECUResetMethodFactory(IServiceMethodFactory):
             except AttributeError:
                 pass
 
-            if(semantic == 'SERVICE-ID'):
+            if (semantic == 'SERVICE-ID'):
                 serviceId = [int(param.find('CODED-VALUE').text)]
-				
-            elif(semantic == 'SUBFUNCTION'):
+
+            elif (semantic == 'SUBFUNCTION'):
                 resetType = [int(param.find('CODED-VALUE').text)]
                 if resetType[0] >= SUPPRESS_RESPONSE_BIT:
                     pass
-                    #raise ValueError("ECU Reset:reset type exceeds maximum value (received {0})".format(resetType[0]))
+                    # raise ValueError("ECU Reset:reset type exceeds maximum value (received {0})".format(resetType[0]))
 
         funcString = requestFuncTemplate.format(shortName,
                                                 serviceId,
                                                 resetType,
                                                 SUPPRESS_RESPONSE_BIT)
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
+
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId, *resetType, SUPPRESS_RESPONSE_BIT])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
         exec(funcString)
         return locals()[shortName]
 
@@ -112,7 +118,8 @@ class ECUResetMethodFactory(IServiceMethodFactory):
 
         shortName = diagServiceElement.find('SHORT-NAME').text
         checkFunctionName = "check_{0}".format(shortName)
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
 
         paramsElement = positiveResponseElement.find('PARAMS')
 
@@ -129,48 +136,46 @@ class ECUResetMethodFactory(IServiceMethodFactory):
 
                 startByte = int(param.find('BYTE-POSITION').text)
 
-                if(semantic == 'SERVICE-ID'):
+                if (semantic == 'SERVICE-ID'):
                     responseId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     responseIdStart = startByte
                     responseIdEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'SUBFUNCTION'):
+                elif (semantic == 'SUBFUNCTION'):
                     resetType = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     resetTypeStart = startByte
                     resetTypeEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'DATA'):
+                elif (semantic == 'DATA'):
                     # This will be powerDownTime if present (it's the only additional attribute that cna be returned.
                     dataObjectElement = xmlElements[(param.find('DOP-REF')).attrib['ID-REF']]
-                    if(dataObjectElement.tag == "DATA-OBJECT-PROP"):
+                    if (dataObjectElement.tag == "DATA-OBJECT-PROP"):
                         start = int(param.find('BYTE-POSITION').text)
                         bitLength = int(dataObjectElement.find('DIAG-CODED-TYPE').find('BIT-LENGTH').text)
-                        listLength = int(bitLength/8)
+                        listLength = int(bitLength / 8)
                         totalLength += listLength
                     else:
                         pass
                 else:
                     pass
             except:
-                #print(sys.exc_info())
+                # print(sys.exc_info())
                 pass
 
-
-        checkFunctionString = checkFunctionTemplate.format(checkFunctionName, # 0
-                                                           responseId, # 1
-                                                           resetType, # 2
-                                                           responseIdStart, # 3
-                                                           responseIdEnd, # 4
-                                                           resetTypeStart, # 5
-                                                           resetTypeEnd, # 6
-                                                           totalLength) # 7
+        checkFunctionString = checkFunctionTemplate.format(checkFunctionName,  # 0
+                                                           responseId,  # 1
+                                                           resetType,  # 2
+                                                           responseIdStart,  # 3
+                                                           responseIdEnd,  # 4
+                                                           resetTypeStart,  # 5
+                                                           resetTypeEnd,  # 6
+                                                           totalLength)  # 7
         exec(checkFunctionString)
         return locals()[checkFunctionName]
-
 
     ##
     # @brief method to encode the positive response from the raw type to it physical representation
@@ -187,8 +192,9 @@ class ECUResetMethodFactory(IServiceMethodFactory):
         # The values in the response are SID, resetType, and optionally the powerDownTime (only for resetType 0x04). Checking is handled in the check function, 
         # so must be present and ok. This function is only required to return the resetType and powerDownTime (if present).
 
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
-		
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+
         shortName = diagServiceElement.find('SHORT-NAME').text
         encodePositiveResponseFunctionName = "encode_{0}".format(shortName)
 
@@ -211,7 +217,7 @@ class ECUResetMethodFactory(IServiceMethodFactory):
                     listLength = int(bitLength / 8)
                     endPosition = bytePosition + listLength
                     encodingType = param.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
-                    if(encodingType) == "A_ASCIISTRING":
+                    if (encodingType) == "A_ASCIISTRING":
                         functionString = "DecodeFunctions.intListToString(input[{0}:{1}], None)".format(bytePosition,
                                                                                                         endPosition)
                     else:
@@ -228,10 +234,10 @@ class ECUResetMethodFactory(IServiceMethodFactory):
                     listLength = int(bitLength / 8)
                     endPosition = bytePosition + listLength
                     encodingType = dataObjectElement.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
-                    if(encodingType) == "A_ASCIISTRING":
+                    if (encodingType) == "A_ASCIISTRING":
                         functionString = "DecodeFunctions.intListToString(input[{0}:{1}], None)".format(bytePosition,
                                                                                                         endPosition)
-                    elif(encodingType == "A_UINT32"):
+                    elif (encodingType == "A_UINT32"):
                         functionString = "input[{1}:{2}]".format(longName,
                                                                  bytePosition,
                                                                  endPosition)
@@ -248,8 +254,6 @@ class ECUResetMethodFactory(IServiceMethodFactory):
                                                                          "\n    ".join(encodeFunctions))
         exec(encodeFunctionString)
         return locals()[encodePositiveResponseFunctionName]
-
-
 
     ##
     # @brief method to create the negative response function for the service element
@@ -288,12 +292,13 @@ class ECUResetMethodFactory(IServiceMethodFactory):
                     start = int(param.find('BYTE-POSITION').text)
                     diagCodedType = param.find('DIAG-CODED-TYPE')
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
-                    listLength = int(bitLength/8)
+                    listLength = int(bitLength / 8)
                     end = start + listLength
 
-                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(start,
-                                                                                                                                                                   end,
-                                                                                                                                                                   serviceId)
+                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(
+                        start,
+                        end,
+                        serviceId)
                     negativeResponseChecks.append(checkString)
 
                     pass
