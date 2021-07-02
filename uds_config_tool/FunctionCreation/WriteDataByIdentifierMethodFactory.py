@@ -9,11 +9,10 @@ __maintainer__ = "Richard Clubb"
 __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
+import json
 
 from uds.uds_config_tool import DecodeFunctions
-import sys
 from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
-
 
 # When encode the dataRecord for transmission we have to allow for multiple elements in the data record
 # i.e. 'value1' - for a single value, or [('param1','value1'),('param2','value2')]  for more complex data records
@@ -23,8 +22,7 @@ requestFuncTemplate = str("def {0}(dataRecord):\n"
                           "        drDict = dict(dataRecord)\n"
                           "        {3}\n"
                           "{4}\n"
-                          "    return {1} + {2} + encoded")									 
-
+                          "    return {1} + {2} + encoded")
 
 checkFunctionTemplate = str("def {0}(input):\n"
                             "    serviceIdExpected = {1}\n"
@@ -40,6 +38,7 @@ negativeResponseFuncTemplate = str("def {0}(input):\n"
 
 encodePositiveResponseFuncTemplate = str("def {0}(input):\n"
                                          "    return")
+
 
 class WriteDataByIdentifierMethodFactory(IServiceMethodFactory):
 
@@ -64,10 +63,11 @@ class WriteDataByIdentifierMethodFactory(IServiceMethodFactory):
             except AttributeError:
                 pass
 
-            if(semantic == 'SERVICE-ID'):
+            if (semantic == 'SERVICE-ID'):
                 serviceId = [int(param.find('CODED-VALUE').text)]
-            elif(semantic == 'ID'):
-                diagnosticId = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int16', 'int8')
+            elif (semantic == 'ID'):
+                diagnosticId = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int16',
+                                                                  'int8')
             elif semantic == 'DATA':
                 dataObjectElement = xmlElements[(param.find('DOP-REF')).attrib['ID-REF']]
                 longName = param.find('LONG-NAME').text
@@ -77,26 +77,32 @@ class WriteDataByIdentifierMethodFactory(IServiceMethodFactory):
                     encodingType = dataObjectElement.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
                 except:
                     encodingType = "unknown"  # ... for now just drop into the "else" catch-all ??????????????????????????????????????????????
-                if(encodingType) == "A_ASCIISTRING":
+                if (encodingType) == "A_ASCIISTRING":
                     functionStringList = "DecodeFunctions.stringToIntList(drDict['{0}'], None)".format(longName)
                     functionStringSingle = "DecodeFunctions.stringToIntList(dataRecord, None)"
-                elif(encodingType) == "A_INT8":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int8', 'int8')".format(longName)
+                elif (encodingType) == "A_INT8":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int8', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'int8', 'int8')"
-                elif(encodingType) == "A_INT16":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int16', 'int8')".format(longName)
+                elif (encodingType) == "A_INT16":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int16', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'int16', 'int8')"
-                elif(encodingType) == "A_INT32":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int32', 'int8')".format(longName)
+                elif (encodingType) == "A_INT32":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int32', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'int32', 'int8')"
-                elif(encodingType) == "A_UINT8":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint8', 'int8')".format(longName)
+                elif (encodingType) == "A_UINT8":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint8', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'uint8', 'int8')"
-                elif(encodingType) == "A_UINT16":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint16', 'int8')".format(longName)
+                elif (encodingType) == "A_UINT16":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint16', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'uint16', 'int8')"
-                elif(encodingType) == "A_UINT32":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint32', 'int8')".format(longName)
+                elif (encodingType) == "A_UINT32":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint32', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'uint32', 'int8')"
                 else:
                     functionStringList = "drDict['{0}']".format(longName)
@@ -120,10 +126,8 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
 
                 # 
                 encodeFunctions.append("encoded += {1}".format(longName,
-                                                                 functionStringList))
-                encodeFunction = "    else:\n        encoded = {1}".format(longName,functionStringSingle)
-
-
+                                                               functionStringList))
+                encodeFunction = "    else:\n        encoded = {1}".format(longName, functionStringSingle)
 
         # If we have only a single value for the dataRecord to send, then we can simply suppress the single value sending option.
         # Note: in the reverse case, we do not suppress the dictionary method of sending, as this allows extra flexibility, allowing 
@@ -134,8 +138,18 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
         funcString = requestFuncTemplate.format(shortName,
                                                 serviceId,
                                                 diagnosticId,
-												"\n        ".join(encodeFunctions),  # ... handles input via list
-												encodeFunction)                  # ... handles input via single value
+                                                "\n        ".join(encodeFunctions),  # ... handles input via list
+                                                encodeFunction)  # ... handles input via single value
+
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
+
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId, *diagnosticId])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
+
         exec(funcString)
         return locals()[shortName]
 
@@ -153,7 +167,8 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
 
         shortName = diagServiceElement.find('SHORT-NAME').text
         checkFunctionName = "check_{0}".format(shortName)
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
 
         paramsElement = positiveResponseElement.find('PARAMS')
 
@@ -169,14 +184,14 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
 
                 startByte = int(param.find('BYTE-POSITION').text)
 
-                if(semantic == 'SERVICE-ID'):
+                if (semantic == 'SERVICE-ID'):
                     responseId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     responseIdStart = startByte
                     responseIdEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'ID'):
+                elif (semantic == 'ID'):
                     diagnosticId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
@@ -186,17 +201,17 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
                 else:
                     pass
             except:
-                #print(sys.exc_info())
+                # print(sys.exc_info())
                 pass
 
-        checkFunctionString = checkFunctionTemplate.format(checkFunctionName, # 0
-                                                           responseId, # 1
-                                                           diagnosticId, # 2
-                                                           responseIdStart, # 3
-                                                           responseIdEnd, # 4
-                                                           diagnosticIdStart, # 5
-                                                           diagnosticIdEnd, # 6
-                                                           totalLength) # 7
+        checkFunctionString = checkFunctionTemplate.format(checkFunctionName,  # 0
+                                                           responseId,  # 1
+                                                           diagnosticId,  # 2
+                                                           responseIdStart,  # 3
+                                                           responseIdEnd,  # 4
+                                                           diagnosticIdStart,  # 5
+                                                           diagnosticIdEnd,  # 6
+                                                           totalLength)  # 7
         exec(checkFunctionString)
         return locals()[checkFunctionName]
 
@@ -206,11 +221,11 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
     def create_encodePositiveResponseFunction(diagServiceElement, xmlElements):
         # There's nothing to extract here! The only value in the response is the DID, checking of which is handled in the check function, 
         # so must be present and ok. This function is only required to return the default None response.
-		
+
         shortName = diagServiceElement.find('SHORT-NAME').text
         encodePositiveResponseFunctionName = "encode_{0}".format(shortName)
-		
-        encodeFunctionString = encodePositiveResponseFuncTemplate.format(encodePositiveResponseFunctionName) # 0
+
+        encodeFunctionString = encodePositiveResponseFuncTemplate.format(encodePositiveResponseFunctionName)  # 0
         exec(encodeFunctionString)
         return locals()[encodePositiveResponseFunctionName]
 
@@ -243,12 +258,13 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
                     start = int(param.find('BYTE-POSITION').text)
                     diagCodedType = param.find('DIAG-CODED-TYPE')
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
-                    listLength = int(bitLength/8)
+                    listLength = int(bitLength / 8)
                     end = start + listLength
 
-                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(start,
-                                                                                                                                                                   end,
-                                                                                                                                                                   serviceId)
+                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(
+                        start,
+                        end,
+                        serviceId)
                     negativeResponseChecks.append(checkString)
 
                     pass

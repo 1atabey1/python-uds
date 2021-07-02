@@ -9,9 +9,9 @@ __maintainer__ = "Richard Clubb"
 __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
+import json
 
 from uds.uds_config_tool import DecodeFunctions
-import sys
 from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 # Extended to cater for multiple DIDs in a request - typically rather than processing
@@ -19,25 +19,25 @@ from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceM
 # We can cater for multiple DIDs by then combining whatever calls we need to.
 
 requestSIDFuncTemplate = str("def {0}():\n"
-                          "    return {1}")
+                             "    return {1}")
 requestDIDFuncTemplate = str("def {0}():\n"
-                          "    return {1}")
+                             "    return {1}")
 
 checkSIDRespFuncTemplate = str("def {0}(input):\n"
-                            "    serviceIdExpected = {1}\n"
-                            "    serviceId = DecodeFunctions.buildIntFromList(input[{2}:{3}])\n"
-                            "    if(serviceId != serviceIdExpected): raise Exception(\"Service Id Received not expected. Expected {{0}}; Got {{1}} \".format(serviceIdExpected, serviceId))")
+                               "    serviceIdExpected = {1}\n"
+                               "    serviceId = DecodeFunctions.buildIntFromList(input[{2}:{3}])\n"
+                               "    if(serviceId != serviceIdExpected): raise Exception(\"Service Id Received not expected. Expected {{0}}; Got {{1}} \".format(serviceIdExpected, serviceId))")
 
 checkSIDLenFuncTemplate = str("def {0}():\n"
-                            "    return {1}")
+                              "    return {1}")
 
 checkDIDRespFuncTemplate = str("def {0}(input):\n"
-                            "    diagnosticIdExpected = {1}\n"
-                            "    diagnosticId = DecodeFunctions.buildIntFromList(input[{2}:{3}])\n"
-                            "    if(diagnosticId != diagnosticIdExpected): raise Exception(\"Diagnostic Id Received not as expected. Expected: {{0}}; Got {{1}}\".format(diagnosticIdExpected, diagnosticId))")
+                               "    diagnosticIdExpected = {1}\n"
+                               "    diagnosticId = DecodeFunctions.buildIntFromList(input[{2}:{3}])\n"
+                               "    if(diagnosticId != diagnosticIdExpected): raise Exception(\"Diagnostic Id Received not as expected. Expected: {{0}}; Got {{1}}\".format(diagnosticIdExpected, diagnosticId))")
 
 checkDIDLenFuncTemplate = str("def {0}():\n"
-                            "    return {1}")
+                              "    return {1}")
 
 negativeResponseFuncTemplate = str("def {0}(input):\n"
                                    "    {1}")
@@ -70,21 +70,30 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
             except AttributeError:
                 pass
 
-            if(semantic == 'SERVICE-ID'):
+            if (semantic == 'SERVICE-ID'):
                 serviceId = [int(param.find('CODED-VALUE').text)]
-            elif(semantic == 'ID'):
-                diagnosticId = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int16', 'int8')
+            elif (semantic == 'ID'):
+                diagnosticId = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int16',
+                                                                  'int8')
 
-        funcString = requestSIDFuncTemplate.format(requestSIDFuncName, # 0
-                                                serviceId) #1
+        funcString = requestSIDFuncTemplate.format(requestSIDFuncName,  # 0
+                                                   serviceId)  # 1
         exec(funcString)
 
-        funcString = requestDIDFuncTemplate.format(requestDIDFuncName, #0
-                                                diagnosticId) # 1
+        funcString = requestDIDFuncTemplate.format(requestDIDFuncName,  # 0
+                                                   diagnosticId)  # 1
         exec(funcString)
 
-        return (locals()[requestSIDFuncName],locals()[requestDIDFuncName])
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
 
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId, *diagnosticId])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
+
+        return locals()[requestSIDFuncName], locals()[requestDIDFuncName]
 
     @staticmethod
     def create_checkPositiveResponseFunctions(diagServiceElement, xmlElements):
@@ -102,7 +111,8 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
         checkSIDLenFuncName = "checkSIDLen_{0}".format(shortName)
         checkDIDRespFuncName = "checkDIDResp_{0}".format(shortName)
         checkDIDLenFuncName = "checkDIDLen_{0}".format(shortName)
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
 
         paramsElement = positiveResponseElement.find('PARAMS')
 
@@ -119,7 +129,7 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
 
                 startByte = int(param.find('BYTE-POSITION').text)
 
-                if(semantic == 'SERVICE-ID'):
+                if (semantic == 'SERVICE-ID'):
                     responseId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
@@ -127,21 +137,21 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
                     responseIdEnd = startByte + listLength
                     totalLength += listLength
                     SIDLength = listLength
-                elif(semantic == 'ID'):
+                elif (semantic == 'ID'):
                     diagnosticId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     diagnosticIdStart = startByte
                     diagnosticIdEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'DATA'):
+                elif (semantic == 'DATA'):
                     dataObjectElement = xmlElements[(param.find('DOP-REF')).attrib['ID-REF']]
-                    if(dataObjectElement.tag == "DATA-OBJECT-PROP"):
+                    if (dataObjectElement.tag == "DATA-OBJECT-PROP"):
                         start = int(param.find('BYTE-POSITION').text)
                         bitLength = int(dataObjectElement.find('DIAG-CODED-TYPE').find('BIT-LENGTH').text)
-                        listLength = int(bitLength/8)
+                        listLength = int(bitLength / 8)
                         totalLength += listLength
-                    elif(dataObjectElement.tag == "STRUCTURE"):
+                    elif (dataObjectElement.tag == "STRUCTURE"):
                         start = int(param.find('BYTE-POSITION').text)
                         listLength = int(dataObjectElement.find('BYTE-SIZE').text)
                         totalLength += listLength
@@ -150,35 +160,37 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
                 else:
                     pass
             except:
-                #print(sys.exc_info())
+                # print(sys.exc_info())
                 pass
 
-        checkSIDRespFuncString = checkSIDRespFuncTemplate.format(checkSIDRespFuncName, # 0
-                                                           responseId, # 1
-                                                           responseIdStart, # 2
-                                                           responseIdEnd) # 3
+        checkSIDRespFuncString = checkSIDRespFuncTemplate.format(checkSIDRespFuncName,  # 0
+                                                                 responseId,  # 1
+                                                                 responseIdStart,  # 2
+                                                                 responseIdEnd)  # 3
         exec(checkSIDRespFuncString)
-        checkSIDLenFuncString = checkSIDLenFuncTemplate.format(checkSIDLenFuncName, # 0
-                                                           SIDLength) # 1
+        checkSIDLenFuncString = checkSIDLenFuncTemplate.format(checkSIDLenFuncName,  # 0
+                                                               SIDLength)  # 1
         exec(checkSIDLenFuncString)
-        checkDIDRespFuncString = checkDIDRespFuncTemplate.format(checkDIDRespFuncName, # 0
-                                                           diagnosticId, # 1
-                                                           diagnosticIdStart - SIDLength, # 2... note: we no longer look at absolute pos in the response,
-                                                           diagnosticIdEnd - SIDLength) # 3      but look at the DID response as an isolated extracted element.
+        checkDIDRespFuncString = checkDIDRespFuncTemplate.format(checkDIDRespFuncName,  # 0
+                                                                 diagnosticId,  # 1
+                                                                 diagnosticIdStart - SIDLength,
+                                                                 # 2... note: we no longer look at absolute pos in the response,
+                                                                 diagnosticIdEnd - SIDLength)  # 3      but look at the DID response as an isolated extracted element.
         exec(checkDIDRespFuncString)
-        checkDIDLenFuncString = checkDIDLenFuncTemplate.format(checkDIDLenFuncName, # 0
-                                                           totalLength - SIDLength) # 1
+        checkDIDLenFuncString = checkDIDLenFuncTemplate.format(checkDIDLenFuncName,  # 0
+                                                               totalLength - SIDLength)  # 1
         exec(checkDIDLenFuncString)
 
-        return (locals()[checkSIDRespFuncName],locals()[checkSIDLenFuncName],locals()[checkDIDRespFuncName],locals()[checkDIDLenFuncName])
-
+        return (locals()[checkSIDRespFuncName], locals()[checkSIDLenFuncName], locals()[checkDIDRespFuncName],
+                locals()[checkDIDLenFuncName])
 
     ##
     # @brief may need refactoring to deal with multiple positive-responses (WIP)
     @staticmethod
     def create_encodePositiveResponseFunction(diagServiceElement, xmlElements):
 
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
 
         shortName = diagServiceElement.find('SHORT-NAME').text
         encodePositiveResponseFunctionName = "encode_{0}".format(shortName)
@@ -202,25 +214,27 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
                     # catch exceptions when querying for bit length
                     try:
                         bitLength = int(dataObjectElement.find('DIAG-CODED-TYPE').find('BIT-LENGTH').text)
-                    except:    # dataObjectElement might be pointing to higher level structure
+                    except:  # dataObjectElement might be pointing to higher level structure
                         dataObjectElement = \
-                            xmlElements[(dataObjectElement.find('PARAMS')).find('PARAM').find('DOP-REF').attrib['ID-REF']]
+                            xmlElements[
+                                (dataObjectElement.find('PARAMS')).find('PARAM').find('DOP-REF').attrib['ID-REF']]
                         bitLength = int(dataObjectElement.find('DIAG-CODED-TYPE').find('BIT-LENGTH').text)
 
                     listLength = int(bitLength / 8)
                     endPosition = bytePosition + listLength
                     encodingType = dataObjectElement.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
-                    if(encodingType) == "A_ASCIISTRING":
-                        functionString = "DecodeFunctions.intListToString(input[{0}-offset:{1}-offset], None)".format(bytePosition,
-                                                                                                        endPosition)
-                    elif(encodingType == "A_UINT32"):
+                    if (encodingType) == "A_ASCIISTRING":
+                        functionString = "DecodeFunctions.intListToString(input[{0}-offset:{1}-offset], None)".format(
+                            bytePosition,
+                            endPosition)
+                    elif (encodingType == "A_UINT32"):
                         functionString = "input[{1}-offset:{2}-offset]".format(longName,
                                                                                bytePosition,
                                                                                endPosition)
                     else:
                         functionString = "input[{1}-offset:{2}-offset]".format(longName,
-                                                                 bytePosition,
-                                                                 endPosition)
+                                                                               bytePosition,
+                                                                               endPosition)
                     encodeFunctions.append("result['{0}'] = {1}".format(longName,
                                                                         functionString))
             except:
@@ -259,12 +273,13 @@ class ReadDataByIdentifierMethodFactory(IServiceMethodFactory):
                     start = int(param.find('BYTE-POSITION').text)
                     diagCodedType = param.find('DIAG-CODED-TYPE')
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
-                    listLength = int(bitLength/8)
+                    listLength = int(bitLength / 8)
                     end = start + listLength
 
-                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(start,
-                                                                                                                                                                   end,
-                                                                                                                                                                   serviceId)
+                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(
+                        start,
+                        end,
+                        serviceId)
                     negativeResponseChecks.append(checkString)
 
                     pass

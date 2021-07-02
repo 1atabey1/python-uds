@@ -9,8 +9,9 @@ __maintainer__ = "Richard Clubb"
 __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
+import json
+
 from uds.uds_config_tool import DecodeFunctions
-import sys
 from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 SUPPRESS_RESPONSE_BIT = 0x80
@@ -202,6 +203,15 @@ Also, we will most need to handle scaling at some stage within DecodeFunctions.p
                                                 # ... handles input via list # 4
                                                 encodeFunction,  # ... handles input via single value # 5
                                                 SUPPRESS_RESPONSE_BIT)  # 6
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
+
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId, *controlType, *routineId])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
+
         exec(funcString)
         return (locals()[shortName], str(controlType))
 

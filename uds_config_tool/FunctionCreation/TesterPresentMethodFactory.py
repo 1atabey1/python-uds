@@ -10,14 +10,12 @@ __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
 
-from uds.uds_config_tool import DecodeFunctions
-import sys
+import json
 from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
-
 
 requestFuncTemplate = str("def {0}(suppressResponse=False):\n"
                           "    zeroSubFunction = [0x80] if suppressResponse else [0x00]\n"
-                          "    return {1} + zeroSubFunction")									 
+                          "    return {1} + zeroSubFunction")
 
 # Note: we do not need to cater for response suppression checking as nothing to check if response is suppressed - always unsuppressed
 checkFunctionTemplate = str("def {0}(input):\n"
@@ -68,11 +66,19 @@ class TesterPresentMethodFactory(IServiceMethodFactory):
             except AttributeError:
                 pass
 
-            if(semantic == 'SERVICE-ID'):
+            if (semantic == 'SERVICE-ID'):
                 serviceId = [int(param.find('CODED-VALUE').text)]
 
         funcString = requestFuncTemplate.format(shortName,
                                                 serviceId)
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
+
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId, 0x80])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
         exec(funcString)
         return locals()[shortName]
 
@@ -95,12 +101,12 @@ class TesterPresentMethodFactory(IServiceMethodFactory):
 
         shortName = diagServiceElement.find('SHORT-NAME').text
         checkFunctionName = "check_{0}".format(shortName)
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
 
-        checkFunctionString = checkFunctionTemplate.format(checkFunctionName) # 0
+        checkFunctionString = checkFunctionTemplate.format(checkFunctionName)  # 0
         exec(checkFunctionString)
         return locals()[checkFunctionName]
-
 
     ##
     # @brief method to encode the positive response from the raw type to it physical representation
@@ -117,16 +123,15 @@ class TesterPresentMethodFactory(IServiceMethodFactory):
         # The values in the response are SID, resetType, and optionally the powerDownTime (only for resetType 0x04). Checking is handled in the check function, 
         # so must be present and ok. This function is only required to return the resetType and powerDownTime (if present).
 
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
-		
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+
         shortName = diagServiceElement.find('SHORT-NAME').text
         encodePositiveResponseFunctionName = "encode_{0}".format(shortName)
 
         encodeFunctionString = encodePositiveResponseFuncTemplate.format(encodePositiveResponseFunctionName)
         exec(encodeFunctionString)
         return locals()[encodePositiveResponseFunctionName]
-
-
 
     ##
     # @brief method to create the negative response function for the service element
@@ -165,12 +170,13 @@ class TesterPresentMethodFactory(IServiceMethodFactory):
                     start = int(param.find('BYTE-POSITION').text)
                     diagCodedType = param.find('DIAG-CODED-TYPE')
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
-                    listLength = int(bitLength/8)
+                    listLength = int(bitLength / 8)
                     end = start + listLength
 
-                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(start,
-                                                                                                                                                                   end,
-                                                                                                                                                                   serviceId)
+                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(
+                        start,
+                        end,
+                        serviceId)
                     negativeResponseChecks.append(checkString)
 
                     pass

@@ -11,7 +11,7 @@ __status__ = "Development"
 
 
 from uds.uds_config_tool import DecodeFunctions
-import sys
+import json
 from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 
@@ -65,6 +65,14 @@ class TransferDataMethodFactory(IServiceMethodFactory):
 
         funcString = requestFuncTemplate.format(shortName, # 0
                                                 serviceId) # 1
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
+
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
         exec(funcString)
         return locals()[shortName]
 		

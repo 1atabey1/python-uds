@@ -1,0 +1,397 @@
+{
+   "Requests": [
+      {
+         "DefaultSession_Start": [
+            16,
+            1,
+            128
+         ]
+      },
+      {
+         "ProgrammingSession_Start": [
+            16,
+            2,
+            128
+         ]
+      },
+      {
+         "ExtendedDiagnosticSession_Start": [
+            16,
+            3,
+            128
+         ]
+      },
+      {
+         "Software_Download_Specification_Version_Read_1": [
+            34,
+            241,
+            98
+         ]
+      },
+      {
+         "Active_Diagnostic_Session_Read_1": [
+            34,
+            209,
+            0
+         ]
+      },
+      {
+         "Application_Software_Identification_Read_1": [
+            34,
+            241,
+            148
+         ]
+      },
+      {
+         "Application_Software_Version_Read_1": [
+            34,
+            241,
+            149
+         ]
+      },
+      {
+         "PBL_Part_Number_Read_1": [
+            34,
+            253,
+            2
+         ]
+      },
+      {
+         "PBL_Version_Number_Read_1": [
+            34,
+            253,
+            3
+         ]
+      },
+      {
+         "SBL_Part_Number_Read_1": [
+            34,
+            253,
+            4
+         ]
+      },
+      {
+         "SBL_Version_Number_Read_1": [
+            34,
+            253,
+            5
+         ]
+      },
+      {
+         "Application_Post_Build_Part_Number_Read_1": [
+            34,
+            253,
+            6
+         ]
+      },
+      {
+         "Application_Post_Build_Version_Number_Read_1": [
+            34,
+            253,
+            7
+         ]
+      },
+      {
+         "Extended_Request": [
+            39,
+            5
+         ]
+      },
+      {
+         "Extended_Request": [
+            39,
+            133
+         ]
+      },
+      {
+         "Extended_Key": [
+            39,
+            6
+         ]
+      },
+      {
+         "Extended_Key": [
+            39,
+            134
+         ]
+      },
+      {
+         "Programming_Request": [
+            39,
+            1
+         ]
+      },
+      {
+         "Programming_Request": [
+            39,
+            129
+         ]
+      },
+      {
+         "Programming_Key": [
+            39,
+            2
+         ]
+      },
+      {
+         "Programming_Key": [
+            39,
+            130
+         ]
+      },
+      {
+         "ECU_Serial_Number_Read": [
+            34,
+            241,
+            140
+         ]
+      },
+      {
+         "ECU_Serial_Number_Write": [
+            46,
+            241,
+            140
+         ]
+      },
+      {
+         "Boot_Software_Identification_Read": [
+            34,
+            241,
+            128
+         ]
+      },
+      {
+         "Boot_Software_Identification_Write": [
+            46,
+            241,
+            128
+         ]
+      },
+      {
+         "ECU_Delivery_Assembly_Number_Read": [
+            34,
+            241,
+            19
+         ]
+      },
+      {
+         "ECU_Delivery_Assembly_Number_Write": [
+            46,
+            241,
+            19
+         ]
+      },
+      {
+         "Boot_Software_Version_Number_Read": [
+            34,
+            241,
+            9
+         ]
+      },
+      {
+         "Boot_Software_Version_Number_Write": [
+            46,
+            241,
+            9
+         ]
+      },
+      {
+         "ECU_Core_Assembly_Number_Read": [
+            34,
+            241,
+            17
+         ]
+      },
+      {
+         "ECU_Core_Assembly_Number_Write": [
+            46,
+            241,
+            17
+         ]
+      },
+      {
+         "Ethernet_MAC_Address_Read": [
+            34,
+            253,
+            22
+         ]
+      },
+      {
+         "Ethernet_MAC_Address_Write": [
+            46,
+            253,
+            22
+         ]
+      },
+      {
+         "Security_Key_L1_Read": [
+            34,
+            253,
+            0
+         ]
+      },
+      {
+         "Security_Key_L1_Write": [
+            46,
+            253,
+            0
+         ]
+      },
+      {
+         "Security_Key_L2_Read": [
+            34,
+            253,
+            1
+         ]
+      },
+      {
+         "Security_Key_L2_Write": [
+            46,
+            253,
+            1
+         ]
+      },
+      {
+         "Programmed_CAN_Config_Read": [
+            34,
+            253,
+            18
+         ]
+      },
+      {
+         "Programmed_CAN_Config_Write": [
+            46,
+            253,
+            18
+         ]
+      },
+      {
+         "Default_CAN_Config_Read": [
+            34,
+            253,
+            19
+         ]
+      },
+      {
+         "General_Configuration_Register_1_Read": [
+            34,
+            253,
+            20
+         ]
+      },
+      {
+         "General_Configuration_Register_1_Write": [
+            46,
+            253,
+            20
+         ]
+      },
+      {
+         "General_Configuration_Register_2_Read": [
+            34,
+            253,
+            21
+         ]
+      },
+      {
+         "General_Configuration_Register_2_Write": [
+            46,
+            253,
+            21
+         ]
+      },
+      {
+         "Erase_Memory_Start": [
+            49,
+            1,
+            255,
+            0
+         ]
+      },
+      {
+         "Erase_Memory_Stop": [
+            49,
+            2,
+            255,
+            0
+         ]
+      },
+      {
+         "Erase_Memory_Results": [
+            49,
+            3,
+            255,
+            0
+         ]
+      },
+      {
+         "Check_Valid_Application_Start": [
+            49,
+            1,
+            3,
+            4
+         ]
+      },
+      {
+         "Check_Valid_Application_Results": [
+            49,
+            3,
+            3,
+            4
+         ]
+      },
+      {
+         "Start_Secondary_Bootloader_Start": [
+            49,
+            1,
+            3,
+            1
+         ]
+      },
+      {
+         "Check_Programming_Dependencies_Start": [
+            49,
+            1,
+            255,
+            1
+         ]
+      },
+      {
+         "Check_Programming_Dependencies_Results": [
+            49,
+            3,
+            255,
+            1
+         ]
+      },
+      {
+         "Download_Request": [
+            52
+         ]
+      },
+      {
+         "Download_Transmit": [
+            54
+         ]
+      },
+      {
+         "Download_Stop": [
+            55
+         ]
+      },
+      {
+         "HardReset_Reset": [
+            17,
+            1,
+            128
+         ]
+      },
+      {
+         "TesterPresent_Send": [
+            62,
+            128
+         ]
+      }
+   ],
+   "Responses": []
+}

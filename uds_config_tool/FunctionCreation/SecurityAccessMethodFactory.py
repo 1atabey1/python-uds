@@ -16,6 +16,8 @@ from uds.uds_config_tool.UtilityFunctions import getSdgsDataItem, getSdgsData, g
                                                  getPositiveResponse, getDiagObjectProp, getBitLengthFromDop
 from math import ceil
 
+import json
+
 ##
 # Inputs
 # Function name
@@ -92,6 +94,14 @@ class SecurityAccessMethodFactory(object):
             requestFuncString = None
 
         if requestFuncString is not None:
+            with open("odx-data.json", 'r') as infile:
+                jsondata = json.load(infile)
+
+            with open("odx-data.json", 'w') as outfile:
+                data_arr = [int(a) for a in bytes([serviceId, securityRequest])]
+                new_entry = {sdgsName: data_arr}
+                jsondata["Requests"].append(new_entry)
+                json.dump(jsondata, outfile, indent=3)
             exec(requestFuncString)
             return locals()[sdgsName]
         else:
