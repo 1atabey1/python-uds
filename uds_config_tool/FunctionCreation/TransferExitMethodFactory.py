@@ -11,7 +11,7 @@ __status__ = "Development"
 
 import json
 
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 requestFuncTemplate = str("def {0}(parameterRecord):\n"
                           "    output = {1}\n"

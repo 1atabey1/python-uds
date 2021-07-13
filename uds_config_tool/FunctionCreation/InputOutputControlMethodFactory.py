@@ -9,11 +9,10 @@ __maintainer__ = "Richard Clubb"
 __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
+import json
 
-from uds.uds_config_tool import DecodeFunctions
-import sys
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
-
+from uds_config_tool import DecodeFunctions
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 # When encode the dataRecord for transmission we allow for multiple elements in the data record,
 # i.e. IO Ctrl always has the option and mask records in the request
@@ -23,7 +22,7 @@ requestFuncTemplate = str("def {0}(dataRecord):\n"
                           "        drDict = dict(dataRecord)\n"
                           "        {4}\n"
                           "{5}\n"
-                          "    return {1} + {2} + {3} + encoded")											 
+                          "    return {1} + {2} + {3} + encoded")
 
 checkFunctionTemplate = str("def {0}(input):\n"
                             "    serviceIdExpected = {1}\n"
@@ -70,11 +69,12 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
             except AttributeError:
                 pass
 
-            if(semantic == 'SERVICE-ID'):
+            if (semantic == 'SERVICE-ID'):
                 serviceId = [int(param.find('CODED-VALUE').text)]
-            elif(semantic == 'ID'):
-                diagnosticId = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int16', 'int8')
-            elif(semantic == 'SUBFUNCTION'):
+            elif (semantic == 'ID'):
+                diagnosticId = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int16',
+                                                                  'int8')
+            elif (semantic == 'SUBFUNCTION'):
                 optionRecord = DecodeFunctions.intArrayToIntArray([int(param.find('CODED-VALUE').text)], 'int8', 'int8')
             elif semantic == 'DATA':
                 dataObjectElement = xmlElements[(param.find('DOP-REF')).attrib['ID-REF']]
@@ -83,7 +83,8 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
 
                 # If data object is a structure
                 if dataObjectElement.find('DIAG-CODED-TYPE') is None:
-                    dataObjectElement = xmlElements[dataObjectElement.find('PARAMS').find('PARAM').find('DOP-REF').attrib['ID-REF']]
+                    dataObjectElement = xmlElements[
+                        dataObjectElement.find('PARAMS').find('PARAM').find('DOP-REF').attrib['ID-REF']]
 
                 try:
                     encodingType = dataObjectElement.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
@@ -96,20 +97,23 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                 except:
                     bitLength = 32  # just assume maximum length when in doubt
 
-                if(encodingType) == "A_ASCIISTRING":
+                if (encodingType) == "A_ASCIISTRING":
                     functionStringList = "DecodeFunctions.stringToIntList(drDict['{0}'], None)".format(longName)
                     functionStringSingle = "DecodeFunctions.stringToIntList(dataRecord, None)"
-                elif(encodingType) == "A_INT8":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int8', 'int8')".format(longName)
+                elif (encodingType) == "A_INT8":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int8', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'int8', 'int8')"
-                elif(encodingType) == "A_INT16":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int16', 'int8')".format(longName)
+                elif (encodingType) == "A_INT16":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int16', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'int16', 'int8')"
                     if bitLength < 16:
                         functionStringList = functionStringList + "[1:]"
                         functionStringSingle = functionStringSingle + "[1:]"
-                elif(encodingType) == "A_INT32":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int32', 'int8')".format(longName)
+                elif (encodingType) == "A_INT32":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'int32', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'int32', 'int8')"
                     if bitLength == 8:
                         functionStringList = functionStringList + "[3:]"
@@ -120,17 +124,20 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                     elif bitLength == 24:
                         functionStringList = functionStringList + "[1:]"
                         functionStringSingle = functionStringSingle + "[1:]"
-                elif(encodingType) == "A_UINT8":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint8', 'int8')".format(longName)
+                elif (encodingType) == "A_UINT8":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint8', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'uint8', 'int8')"
-                elif(encodingType) == "A_UINT16":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint16', 'int8')".format(longName)
+                elif (encodingType) == "A_UINT16":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint16', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'uint16', 'int8')"
                     if bitLength < 16:
                         functionStringList = functionStringList + "[1:]"
                         functionStringSingle = functionStringSingle + "[1:]"
-                elif(encodingType) == "A_UINT32":
-                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint32', 'int8')".format(longName)
+                elif (encodingType) == "A_UINT32":
+                    functionStringList = "DecodeFunctions.intArrayToIntArray(drDict['{0}'], 'uint32', 'int8')".format(
+                        longName)
                     functionStringSingle = "DecodeFunctions.intArrayToIntArray(dataRecord, 'uint32', 'int8')"
                     if bitLength == 8:
                         functionStringList = functionStringList + "[3:]"
@@ -159,13 +166,20 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                                                 serviceId,
                                                 diagnosticId,
                                                 optionRecord,
-												"\n        ".join(encodeFunctions),  # ... handles input via list
-												encodeFunction)                  # ... handles input via single value
+                                                "\n        ".join(encodeFunctions),  # ... handles input via list
+                                                encodeFunction)  # ... handles input via single value
+
+        with open("odx-data.json", 'r') as infile:
+            jsondata = json.load(infile)
+
+        with open("odx-data.json", 'w') as outfile:
+            data_arr = [int(a) for a in bytes([*serviceId, *diagnosticId, *optionRecord])]
+            new_entry = {diagServiceElement.find('SHORT-NAME').text: data_arr}
+            jsondata["Requests"].append(new_entry)
+            json.dump(jsondata, outfile, indent=3)
 
         exec(funcString)
-        return (locals()[shortName],str(optionRecord))
-
-
+        return (locals()[shortName], str(optionRecord))
 
     ##
     # @brief method to create the function to check the positive response for validity
@@ -192,7 +206,8 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
 
         shortName = diagServiceElement.find('SHORT-NAME').text
         checkFunctionName = "check_{0}".format(shortName)
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
 
         paramsElement = positiveResponseElement.find('PARAMS')
 
@@ -209,36 +224,37 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
 
                 startByte = int(param.find('BYTE-POSITION').text)
 
-                if(semantic == 'SERVICE-ID'):
+                if (semantic == 'SERVICE-ID'):
                     responseId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     responseIdStart = startByte
                     responseIdEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'ID'):
+                elif (semantic == 'ID'):
                     diagnosticId = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     diagnosticIdStart = startByte
                     diagnosticIdEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'SUBFUNCTION'):
+                elif (semantic == 'SUBFUNCTION'):
                     optionRecord = int(param.find('CODED-VALUE').text)
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
                     listLength = int(bitLength / 8)
                     optionRecordStart = startByte
                     optionRecordEnd = startByte + listLength
                     totalLength += listLength
-                elif(semantic == 'DATA'):
+                elif (semantic == 'DATA'):
                     dataObjectElement = xmlElements[(param.find('DOP-REF')).attrib['ID-REF']]
-                    if(dataObjectElement.tag == "DATA-OBJECT-PROP"):
+                    if (dataObjectElement.tag == "DATA-OBJECT-PROP"):
                         start = int(param.find('BYTE-POSITION').text)
                         bitLength = int(dataObjectElement.find('DIAG-CODED-TYPE').find('BIT-LENGTH').text)
-                        listLength = int(bitLength/8)
+                        listLength = int(bitLength / 8)
                         totalLength += listLength
-                    elif(dataObjectElement.tag == "STRUCTURE"):
-                        dataObjectElement = xmlElements[dataObjectElement.find('PARAMS').find('PARAM').find('DOP-REF').attrib['ID-REF']]
+                    elif (dataObjectElement.tag == "STRUCTURE"):
+                        dataObjectElement = xmlElements[
+                            dataObjectElement.find('PARAMS').find('PARAM').find('DOP-REF').attrib['ID-REF']]
                         start = int(param.find('BYTE-POSITION').text)
                         bitLength = int(dataObjectElement.find('DIAG-CODED-TYPE').find('BIT-LENGTH').text)
                         listLength = int(bitLength / 8)
@@ -247,25 +263,23 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                 else:
                     pass
             except:
-                #print(sys.exc_info())
+                # print(sys.exc_info())
                 pass
 
-
-        checkFunctionString = checkFunctionTemplate.format(checkFunctionName, # 0
-                                                           responseId, # 1
-                                                           diagnosticId, # 2
-                                                           optionRecord, # 3
-                                                           responseIdStart, # 4
-                                                           responseIdEnd, # 5
-                                                           diagnosticIdStart, # 6
-                                                           diagnosticIdEnd, # 7
-                                                           optionRecordStart, # 8
-                                                           optionRecordEnd, # 9
-                                                           totalLength) # 10
+        checkFunctionString = checkFunctionTemplate.format(checkFunctionName,  # 0
+                                                           responseId,  # 1
+                                                           diagnosticId,  # 2
+                                                           optionRecord,  # 3
+                                                           responseIdStart,  # 4
+                                                           responseIdEnd,  # 5
+                                                           diagnosticIdStart,  # 6
+                                                           diagnosticIdEnd,  # 7
+                                                           optionRecordStart,  # 8
+                                                           optionRecordEnd,  # 9
+                                                           totalLength)  # 10
 
         exec(checkFunctionString)
         return locals()[checkFunctionName]
-
 
     ##
     # @brief method to encode the positive response from the raw type to it physical representation
@@ -281,8 +295,9 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
 
         # The values in the response include SID and DID, but these do not need to be returned (and already checked in the check function).
 
-        positiveResponseElement = xmlElements[(diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
-		
+        positiveResponseElement = xmlElements[
+            (diagServiceElement.find('POS-RESPONSE-REFS')).find('POS-RESPONSE-REF').attrib['ID-REF']]
+
         shortName = diagServiceElement.find('SHORT-NAME').text
         encodePositiveResponseFunctionName = "encode_{0}".format(shortName)
 
@@ -305,7 +320,7 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                     listLength = int(bitLength / 8)
                     endPosition = bytePosition + listLength
                     encodingType = param.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
-                    if(encodingType) == "A_ASCIISTRING":
+                    if (encodingType) == "A_ASCIISTRING":
                         functionString = "DecodeFunctions.intListToString(input[{0}:{1}], None)".format(bytePosition,
                                                                                                         endPosition)
                     else:
@@ -321,7 +336,7 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                     listLength = int(bitLength / 8)
                     endPosition = bytePosition + listLength
                     encodingType = param.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
-                    if(encodingType) == "A_ASCIISTRING":
+                    if (encodingType) == "A_ASCIISTRING":
                         functionString = "DecodeFunctions.intListToString(input[{0}:{1}], None)".format(bytePosition,
                                                                                                         endPosition)
                     else:
@@ -339,10 +354,10 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                     listLength = int(bitLength / 8)
                     endPosition = bytePosition + listLength
                     encodingType = dataObjectElement.find('DIAG-CODED-TYPE').attrib['BASE-DATA-TYPE']
-                    if(encodingType) == "A_ASCIISTRING":
+                    if (encodingType) == "A_ASCIISTRING":
                         functionString = "DecodeFunctions.intListToString(input[{0}:{1}], None)".format(bytePosition,
                                                                                                         endPosition)
-                    elif(encodingType == "A_UINT32"):
+                    elif (encodingType == "A_UINT32"):
                         functionString = "input[{1}:{2}]".format(longName,
                                                                  bytePosition,
                                                                  endPosition)
@@ -359,8 +374,6 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                                                                          "\n    ".join(encodeFunctions))
         exec(encodeFunctionString)
         return locals()[encodePositiveResponseFunctionName]
-
-
 
     ##
     # @brief method to create the negative response function for the service element
@@ -399,12 +412,13 @@ class InputOutputControlMethodFactory(IServiceMethodFactory):
                     start = int(param.find('BYTE-POSITION').text)
                     diagCodedType = param.find('DIAG-CODED-TYPE')
                     bitLength = int((param.find('DIAG-CODED-TYPE')).find('BIT-LENGTH').text)
-                    listLength = int(bitLength/8)
+                    listLength = int(bitLength / 8)
                     end = start + listLength
 
-                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(start,
-                                                                                                                                                                   end,
-                                                                                                                                                                   serviceId)
+                    checkString = "if input[{0}:{1}] == [{2}]: raise Exception(\"Detected negative response: {{0}}\".format(str([hex(n) for n in input])))".format(
+                        start,
+                        end,
+                        serviceId)
                     negativeResponseChecks.append(checkString)
 
                     pass

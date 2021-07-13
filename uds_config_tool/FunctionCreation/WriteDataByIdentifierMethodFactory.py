@@ -11,8 +11,8 @@ __status__ = "Development"
 
 import json
 
-from uds.uds_config_tool import DecodeFunctions
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool import DecodeFunctions
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 # When encode the dataRecord for transmission we have to allow for multiple elements in the data record
 # i.e. 'value1' - for a single value, or [('param1','value1'),('param2','value2')]  for more complex data records

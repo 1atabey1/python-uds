@@ -10,9 +10,9 @@ __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
 
-from uds.uds_config_tool import DecodeFunctions
+from uds_config_tool import DecodeFunctions
 import json
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 
 requestFuncTemplate = str("def {0}(blockSequenceCounter,parameterRecord):\n"

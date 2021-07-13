@@ -10,8 +10,8 @@ __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
 
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
-from uds.uds_config_tool.UtilityFunctions import getSdgsDataItem, getSdgsData, getShortName, getLongName, \
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool.UtilityFunctions import getSdgsDataItem, getSdgsData, getShortName, getLongName, \
                                                  getServiceIdFromDiagService, getParamWithSemantic, \
                                                  getPositiveResponse, getDiagObjectProp, getBitLengthFromDop
 from math import ceil

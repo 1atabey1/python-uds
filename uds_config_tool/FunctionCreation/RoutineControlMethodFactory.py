@@ -11,8 +11,8 @@ __status__ = "Development"
 
 import json
 
-from uds.uds_config_tool import DecodeFunctions
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool import DecodeFunctions
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 SUPPRESS_RESPONSE_BIT = 0x80
 

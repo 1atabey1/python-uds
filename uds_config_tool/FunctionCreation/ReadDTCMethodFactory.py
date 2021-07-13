@@ -10,9 +10,9 @@ __email__ = "richard.clubb@embeduk.com"
 __status__ = "Development"
 
 
-from uds.uds_config_tool import DecodeFunctions
+from uds_config_tool import DecodeFunctions
 import sys
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 
 # Note: the request is not the simplest to parse from the ODX, so paritally hardcoding this one again (for now at least)

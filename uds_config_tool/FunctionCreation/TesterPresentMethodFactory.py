@@ -11,7 +11,7 @@ __status__ = "Development"
 
 
 import json
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 requestFuncTemplate = str("def {0}(suppressResponse=False):\n"
                           "    zeroSubFunction = [0x80] if suppressResponse else [0x00]\n"

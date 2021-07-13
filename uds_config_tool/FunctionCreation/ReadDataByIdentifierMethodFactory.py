@@ -11,8 +11,8 @@ __status__ = "Development"
 
 import json
 
-from uds.uds_config_tool import DecodeFunctions
-from uds.uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
+from uds_config_tool import DecodeFunctions
+from uds_config_tool.FunctionCreation.iServiceMethodFactory import IServiceMethodFactory
 
 # Extended to cater for multiple DIDs in a request - typically rather than processing
 # a whole response in one go, we break it down and process each part separately.
